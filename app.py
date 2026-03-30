@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 # Configure page layout and title.
 st.set_page_config(page_title="AutoML Explorer", layout="wide", initial_sidebar_state="expanded")
 
-with open("style.css") as f:
+with open("style2.css") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 # Small helper to render consistent visual dividers.
@@ -892,7 +892,6 @@ if file_upload is not None:
         <p class='section-desc'>Verifying your data is ready for training.</p>
     """, unsafe_allow_html=True)
 
-    
     issues = []
 
     if df.isnull().sum().sum() > 0:
