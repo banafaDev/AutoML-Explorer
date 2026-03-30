@@ -10,16 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Push to Hugging Face
+      - name: Push to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git remote add space https://USER:${HF_TOKEN}@huggingface.co/spaces/ahhmedgr/automl-explorer
+          git remote add space https://ahhmedgr:${HF_TOKEN}@huggingface.co/spaces/ahhmedgr/automl-explorer
           git push --force space main
