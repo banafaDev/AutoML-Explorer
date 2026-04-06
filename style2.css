@@ -98,9 +98,17 @@ html, body, [class*="css"] {
 [data-testid="stSidebar"] {
   background: var(--surface) !important;
   border-right: 1px solid var(--border) !important;
+  position: sticky !important;
+  top: 0 !important;
+  height: 100vh !important;
 }
 [data-testid="stSidebar"] .block-container {
   padding: 1.5rem 1rem !important;
+}
+
+[data-testid="stSidebar"] > div:first-child {
+  height: 100vh !important;
+  overflow-y: auto !important;
 }
 
 /* ── Section card ────────────────────────────────────────── */
