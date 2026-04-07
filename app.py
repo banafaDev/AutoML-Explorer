@@ -965,17 +965,17 @@ if file_upload is not None:
         <p class='section-desc'>Adjust these to control training speed and quality.</p>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
 
     with col1:
         # Cross-validation folds.
         cv_folds = st.slider(
             "Cross-validation folds",
-            min_value=2, max_value=10, value=5,
-            help="More folds = more reliable results but slower training. Default is 5."
+            min_value=2, max_value=5, value=3,
+            help="Number of folds for cross-validation. More folds = better model evaluation but slower training. 3 is a good balance, 5 for more reliable results."
         )
 
-        top_n_models = 15  # always compare all available models
+        top_n_models = 5  # keep the comparison set small to reduce shared CPU usage
 
         
 
@@ -990,12 +990,14 @@ if file_upload is not None:
 
         
 
-    with col3:
-        n_iter = st.slider(
-            "Hyperparameter tuning iterations",
-            min_value=10, max_value=500, value=50, step=10,
-            help="How many hyperparameter combinations Optuna tries. More iterations = better results but slower. 50 is a good balance, 200+ for best possible results."
-        )
+    # with col3:
+    #     n_iter = st.slider(
+    #         "Hyperparameter tuning iterations",
+    #         min_value=10, max_value=500, value=50, step=10,
+    #         help="How many hyperparameter combinations Optuna tries. More iterations = better results but slower. 50 is a good balance, 200+ for best possible results."
+    #     )
+
+    
 
 
         
@@ -1060,18 +1062,18 @@ if file_upload is not None:
                 help="ON: trains on 100% of data before download - strongest model. || OFF: trains on 80% only - safer if you want to keep test set untouched."
             )
 
-    st.markdown("""
-        <div style='background:#262730; padding:15px; border-radius:10px; 
-                    border-left: 4px solid #1fd2db; margin-top:15px; margin-bottom: 20px'>
-            <p style='color:#1fd2db; font-size:13px; font-weight:600'>
-                How to get the best results:
-            </p>
-            <ul style='color:gray; margin:8px 0 0 0; font-size:12px'>
-                <li><span style='color:white'>Fast + No Tuning</span> - quickest, good for exploring your data</li>
-                <li><span style='color:white'>Fast + Tuning</span> - balanced speed and quality</li>
-                <li><span style='color:white'>Thorough + Tuning</span> - best possible results, slowest</li>
-            </ul>
-        </div>""", unsafe_allow_html=True)
+    # st.markdown("""
+    #     <div style='background:#262730; padding:15px; border-radius:10px; 
+    #                 border-left: 4px solid #1fd2db; margin-top:15px; margin-bottom: 20px'>
+    #         <p style='color:#1fd2db; font-size:13px; font-weight:600'>
+    #             How to get the best results:
+    #         </p>
+    #         <ul style='color:gray; margin:8px 0 0 0; font-size:12px'>
+    #             <li><span style='color:white'>Fast + No Tuning</span> - quickest, good for exploring your data</li>
+    #             <li><span style='color:white'>Fast + Tuning</span> - balanced speed and quality</li>
+    #             <li><span style='color:white'>Thorough + Tuning</span> - best possible results, slowest</li>
+    #         </ul>
+    #     </div>""", unsafe_allow_html=True)
     
     col5, col6 = st.columns(2)
     with col5:
@@ -1083,12 +1085,13 @@ if file_upload is not None:
                 help="Fast: quick screening then deep evaluation of top 5 - recommended for large datasets. Thorough: tries multiple configurations - better for small datasets under 1000 rows."
         )
     
-    with col6:
-        use_tuning = st.checkbox(
-            "Enable Optuna hyperparameter tuning",
-            value=True,
-            help="ON: Optuna finds best hyperparameters - better results but slower. || OFF: use model as-is - faster."
-        )
+    # with col6:
+    #     use_tuning = st.checkbox(
+    #         "Enable Optuna hyperparameter tuning",
+    #         value=True,
+    #         help="ON: Optuna finds best hyperparameters - better results but slower. || OFF: use model as-is - faster."
+    #     )
+    use_tuning = False  # disable tuning for now to reduce CPU usage on shared environment
 
     divider()
 
@@ -1176,29 +1179,29 @@ if file_upload is not None:
             alert(f"Best config found: {best_config_name} with {sort_metric} = {round(best_score, 4)}", "success")
 
             # Optional hyperparameter tuning.
-            with st.spinner("Tuning best model with Optuna..."):
-                if use_tuning:
-                    try:
-                        from pycaret.classification import tune_model
-                        tuned_model = tune_model(
-                            best_model,
-                            optimize=sort_metric,
-                            n_iter=n_iter,
-                            search_library="optuna",
-                            search_algorithm="tpe",
-                            verbose=False
-                        )
-                        tuned_results = pull()
-                        tuned_score = tuned_results.iloc[0][sort_metric]
-                        if tuned_score > best_score:
-                            alert(f"Tuning improved {sort_metric}: {round(best_score, 4)} → {round(tuned_score, 4)}", "success")
-                            best_model = tuned_model
-                        else:
-                            alert(f"Original model was already optimal ({sort_metric}: {round(best_score, 4)})", "info")
-                    except Exception as e:
-                        alert(f"Tuning skipped: {str(e)}", "warning")
-                else:
-                    alert("Optuna tuning skipped - enable it in Training Settings for potentially better results", "info")
+            # with st.spinner("Tuning best model with Optuna..."):
+            #     if use_tuning:
+            #         try:
+            #             from pycaret.classification import tune_model
+            #             tuned_model = tune_model(
+            #                 best_model,
+            #                 optimize=sort_metric,
+            #                 n_iter=n_iter,
+            #                 search_library="optuna",
+            #                 search_algorithm="tpe",
+            #                 verbose=False
+            #             )
+            #             tuned_results = pull()
+            #             tuned_score = tuned_results.iloc[0][sort_metric]
+            #             if tuned_score > best_score:
+            #                 alert(f"Tuning improved {sort_metric}: {round(best_score, 4)} → {round(tuned_score, 4)}", "success")
+            #                 best_model = tuned_model
+            #             else:
+            #                 alert(f"Original model was already optimal ({sort_metric}: {round(best_score, 4)})", "info")
+            #         except Exception as e:
+            #             alert(f"Tuning skipped: {str(e)}", "warning")
+            #     else:
+            #         alert("Optuna tuning skipped - enable it in Training Settings for potentially better results", "info")
 
             # Build top 3 from the same compare run to keep table/cards aligned.
             top3_models = best_models_for_config[:3] if best_models_for_config else [best_model]
@@ -1278,29 +1281,29 @@ if file_upload is not None:
             alert(f"Best config found: {best_config_name} with R² = {round(best_score, 4)}", "success")
 
             # Optional hyperparameter tuning.
-            with st.spinner("Tuning best model with Optuna..."):
-                if use_tuning:
-                    try:
-                        from pycaret.regression import tune_model
-                        tuned_model = tune_model(
-                            best_model,
-                            optimize="R2",
-                            n_iter=n_iter,
-                            search_library="optuna",
-                            search_algorithm="tpe",
-                            verbose=False
-                        )
-                        tuned_results = pull()
-                        tuned_score = tuned_results.iloc[0]["R2"]
-                        if tuned_score > best_score:
-                            alert(f"Tuning improved R²: {round(best_score, 4)} → {round(tuned_score, 4)}", "success")
-                            best_model = tuned_model
-                        else:
-                            alert(f"Original model was already optimal (R²: {round(best_score, 4)})", "info")
-                    except Exception as e:
-                        alert(f"Tuning skipped: {str(e)}", "warning")
-                else:
-                    alert("Optuna tuning skipped - enable it in Training Settings for potentially better results", "info")
+            # with st.spinner("Tuning best model with Optuna..."):
+            #     if use_tuning:
+            #         try:
+            #             from pycaret.regression import tune_model
+            #             tuned_model = tune_model(
+            #                 best_model,
+            #                 optimize="R2",
+            #                 n_iter=n_iter,
+            #                 search_library="optuna",
+            #                 search_algorithm="tpe",
+            #                 verbose=False
+            #             )
+            #             tuned_results = pull()
+            #             tuned_score = tuned_results.iloc[0]["R2"]
+            #             if tuned_score > best_score:
+            #                 alert(f"Tuning improved R²: {round(best_score, 4)} → {round(tuned_score, 4)}", "success")
+            #                 best_model = tuned_model
+            #             else:
+            #                 alert(f"Original model was already optimal (R²: {round(best_score, 4)})", "info")
+            #         except Exception as e:
+            #             alert(f"Tuning skipped: {str(e)}", "warning")
+            #     else:
+            #         alert("Optuna tuning skipped - enable it in Training Settings for potentially better results", "info")
 
             # Build top 3 from the same compare run to keep table/cards aligned.
             top3_models = best_models_for_config[:3] if best_models_for_config else [best_model]
